@@ -1,0 +1,7 @@
+{
+  "name": "@workflow-agent/dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "server/index.js"
+}

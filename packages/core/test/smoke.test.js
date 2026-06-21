@@ -8,6 +8,7 @@ describe('core', () => {
     assert.ok(core.createEventBus)
     assert.ok(core.createScheduler)
     assert.ok(core.createRuntimeAPI)
-    assert.ok(core.loadWorkflow)
+    assert.ok(core.loadMeta)
+    assert.ok(core.executeWorkflow)
   })
 })
