@@ -1,0 +1,9 @@
+{
+  "name": "workflow-agent",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "test": "node --test packages/*/test/*.test.js"
+  }
+}
