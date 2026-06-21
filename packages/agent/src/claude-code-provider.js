@@ -12,7 +12,10 @@ export class ClaudeCodeProvider {
     //}
     return {
       command: this.commandPath,
-      args: ['--dangerously-skip-permissions', '--strict-mcp-config', '--tools', '"Read,Write,Bash,Edit,WebFetch,WebSearch"', '-p', prompt]
+      args: ['--dangerously-skip-permissions', '--bare', '--setting-sources', 'user', '-p', prompt]
+      // args: ['--dangerously-skip-permissions', '--strict-mcp-config', '--bare', '--tools', '"Read, Write, Bash, Edit, WebFetch, WebSearch"', '-p', prompt]
+      // args: ['--dangerously-skip-permissions', '--strict-mcp-config', '--bare', '--output-format', 'json','-p', prompt]
+      
     }
   }
 
