@@ -1,0 +1,41 @@
+# ============================================
+# Workflow Agent — Default Configuration
+# ============================================
+# Copy this file to .workflow-agent/config.json
+# and adjust the values as needed.
+#
+# Configuration priority (highest wins):
+#   Project (.workflow-agent/config.json) >
+#   Global (~/.workflow-agent/config.json) >
+#   Defaults (this file)
+
+# --------------------------------------------------------------------------
+# defaultProvider
+# ---------------
+# The AI agent provider to use when not specified in the workflow.
+# Supported values:
+#   "claude-code"  — Claude Code CLI (requires `claude` on PATH)
+#   "codex"        — Codex CLI (requires `codex` on PATH)
+# --------------------------------------------------------------------------
+defaultProvider: "claude-code"
+
+# --------------------------------------------------------------------------
+# timeout
+# -------
+# Maximum time (in milliseconds) each agent call is allowed to run.
+# When exceeded, the agent process is killed and the workflow continues.
+#
+#   300000 ms = 5 minutes
+#   600000 ms = 10 minutes
+#   900000 ms = 15 minutes
+# --------------------------------------------------------------------------
+timeout: 300000
+
+# --------------------------------------------------------------------------
+# maxParallel
+# -----------
+# Maximum number of agent calls that can run concurrently when using
+# the parallel() runtime API. Higher values increase throughput but
+# also increase resource usage (CPU, memory, API quota).
+# --------------------------------------------------------------------------
+maxParallel: 4

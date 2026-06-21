@@ -12,7 +12,7 @@ export class ClaudeCodeProvider {
     //}
     return {
       command: this.commandPath,
-      args: ['--dangerously-skip-permissions', '--bare', '--strict-mcp-config', '-p', prompt]
+      args: ['--dangerously-skip-permissions', '--strict-mcp-config', '--tools', '"Read,Write,Bash,Edit,WebFetch,WebSearch"', '-p', prompt]
     }
   }
 
