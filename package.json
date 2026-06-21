@@ -5,6 +5,9 @@
   "workspaces": [
     "packages/*"
   ],
+  "bin": {
+    "workflow-agent": "./packages/cli/src/index.js"
+  },
   "scripts": {
     "test": "node --test packages/*/test/*.test.js"
   },

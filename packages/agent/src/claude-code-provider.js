@@ -7,12 +7,12 @@ export class ClaudeCodeProvider {
   }
 
   buildCommand(prompt, { interactive }) {
-    if (interactive) {
-      return { command: this.commandPath, args: [] }
-    }
+    //if (interactive) {
+    //  return { command: this.commandPath, args: [] }
+    //}
     return {
       command: this.commandPath,
-      args: ['--dangerously-skip-permissions', '-p', prompt]
+      args: ['--dangerously-skip-permissions', '--bare', '--strict-mcp-config', '-p', prompt]
     }
   }
 
