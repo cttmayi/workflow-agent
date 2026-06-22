@@ -2,6 +2,15 @@
 
 基于多平台 AI 代理（Claude Code、Codex）的工作流生成与执行引擎。使用简单的异步 API — `agent()`、`parallel()`、`pipeline()` — 编写 `.js` 工作流脚本，并在你偏好的 AI 提供商上运行。
 
+## 环境要求
+
+使用前需安装以下至少一种 AI 代理：
+
+- **Claude Code** — `npm install -g @anthropic/claude-code` 或通过 IDE 插件安装
+- **Codex CLI** — `npm install -g @openai/codex`
+
+运行 `workflow-agent run generate` 时会自动使用默认配置的 AI 代理。
+
 ## 安装
 
 ```bash
