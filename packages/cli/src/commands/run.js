@@ -1,3 +1,5 @@
+import { mkdirSync, createWriteStream } from 'node:fs'
+import { join } from 'node:path'
 import { createEngine, createEventBus } from '../../../core/src/index.js'
 import { createProvider } from '../../../agent/src/index.js'
 import { createWorkflowFinder } from '../workflow-finder.js'
@@ -12,21 +14,70 @@ export async function runWorkflow(name, options) {
     process.exit(1)
   }
 
-  console.log(`Running "${name}" (from ${found.source})...\n`)
+  // Set up log file
+  const logDir = join(process.cwd(), '.workflow-agent', 'log')
+  mkdirSync(logDir, { recursive: true })
+  const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+  const logPath = join(logDir, `${ts}.log`)
+  const logStream = createWriteStream(logPath, { flags: 'a' })
+
+  function writeLog(level, message) {
+    const time = new Date().toLocaleTimeString()
+    logStream.write(`[${time}][${level}] ${message}\n`)
+  }
+
+  console.log(`\n  ◆ ${name}`)
 
   const bus = createEventBus()
 
   bus.on('phase:change', ({ title }) => {
+    writeLog('PHASE', title)
     console.log(`\n  ◆ ${title}`)
   })
 
-  bus.on('agent:start', ({ provider, label }) => {
-    console.log(`    → [${label || provider}] starting...`)
+  bus.on('agent:start', ({ provider, label, prompt }) => {
+    writeLog('AGENT', `[${label || provider}] ${prompt.slice(0, 120)}...`)
+  })
+
+  bus.on('agent:complete', ({ provider, duration, exitCode }) => {
+    writeLog('AGENT', `[${provider}] done (${duration}ms, exit ${exitCode})`)
   })
 
   bus.on('agent:log', ({ line }) => {
-    process.stdout.write(line)
+    logStream.write(line)
   })
+
+  bus.on('workflow:start', ({ name }) => {
+    writeLog('WORKFLOW', `start: ${name}`)
+  })
+
+  bus.on('workflow:complete', ({ name, duration }) => {
+    writeLog('WORKFLOW', `complete: ${name} (${duration}ms)`)
+  })
+
+  bus.on('workflow:error', ({ name, error }) => {
+    writeLog('WORKFLOW', `error: ${name} - ${error.message}`)
+  })
+
+  bus.on('log', ({ message }) => {
+    writeLog('INFO', message)
+  })
+
+  // Forward events to dashboard server if --dashboard-port is set
+  const dashboardPort = options.dashboardPort
+  if (dashboardPort) {
+    const dashboardUrl = `http://localhost:${dashboardPort}`
+    const forward = (event, data) => {
+      fetch(`${dashboardUrl}/api/event`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ event, data }) }).catch(() => {})
+    }
+    bus.on('phase:change', data => forward('phase:change', data))
+    bus.on('agent:start', data => forward('agent:start', data))
+    bus.on('agent:complete', data => forward('agent:complete', data))
+    bus.on('agent:log', data => forward('agent:log', data))
+    bus.on('workflow:start', data => forward('workflow:start', data))
+    bus.on('workflow:complete', data => forward('workflow:complete', data))
+    bus.on('workflow:error', data => forward('workflow:error', data))
+  }
 
   const engine = createEngine({ eventBus: bus })
 
@@ -34,7 +85,6 @@ export async function runWorkflow(name, options) {
     const providerName = opts.provider || options.provider || 'claude-code'
     const provider = createProvider(providerName, { eventBus: bus })
 
-    // Per-agent timeout from config/CLI option
     const timeoutMs = parseInt(options.timeout, 10) || 300000
     const timeoutSignal = AbortSignal.timeout(timeoutMs)
     const combinedSignal = opts.signal
@@ -45,7 +95,6 @@ export async function runWorkflow(name, options) {
 
     const result = await provider.execute({
       prompt,
-      interactive: opts.interactive || false,
       schema: opts.schema,
       signal: combinedSignal
     })
@@ -63,19 +112,24 @@ export async function runWorkflow(name, options) {
 
   const ac = new AbortController()
   process.on('SIGINT', () => {
-    console.log('\nCancelling...')
+    writeLog('SYSTEM', 'cancelled by user')
     ac.abort()
   })
 
   try {
     const result = await engine.run(found.path, agentFn, { signal: ac.signal })
-    console.log('\n  ✓ Done.')
+    writeLog('SYSTEM', 'workflow finished')
+    logStream.end()
+    console.log('  ✓ Done.')
     if (result) {
       console.log('\nResult:', JSON.stringify(result, null, 2))
     }
     return result
   } catch (err) {
-    console.error(`\n  ✗ Failed: ${err.message}`)
+    writeLog('SYSTEM', `failed: ${err.message}`)
+    logStream.end()
+    console.log('\n  ✗ Failed.')
+    console.error(err.message)
     process.exit(1)
   }
 }

@@ -19,7 +19,9 @@ export function createEngine({ cwd = process.cwd(), eventBus } = {}) {
       parallel: runtime.parallel,
       pipeline: runtime.pipeline,
       phase: runtime.phase,
-      log: runtime.log
+      log: runtime.log,
+      input: runtime.input,
+      cleanup: runtime.cleanup
     }
   }
 
@@ -27,14 +29,16 @@ export function createEngine({ cwd = process.cwd(), eventBus } = {}) {
     const meta = await loadMeta(workflowPath)
     bus.emit('workflow:start', { name: meta.name, timestamp: Date.now() })
     const start = Date.now()
+    const apis = getAPIs(agentFn, signal)
     try {
-      const apis = getAPIs(agentFn, signal)
       const result = await executeWorkflow(workflowPath, apis)
       bus.emit('workflow:complete', { name: meta.name, result, duration: Date.now() - start })
       return result
     } catch (err) {
       bus.emit('workflow:error', { name: meta.name, error: err, duration: Date.now() - start })
       throw err
+    } finally {
+      apis.cleanup()
     }
   }
 

@@ -6,27 +6,21 @@ export class ClaudeCodeProvider {
     this.eventBus = eventBus
   }
 
-  buildCommand(prompt, { interactive }) {
-    //if (interactive) {
-    //  return { command: this.commandPath, args: [] }
-    //}
+  buildCommand(prompt) {
     return {
       command: this.commandPath,
       args: ['--dangerously-skip-permissions', '--bare', '--setting-sources', 'user', '-p', prompt]
-      // args: ['--dangerously-skip-permissions', '--strict-mcp-config', '--bare', '--tools', '"Read, Write, Bash, Edit, WebFetch, WebSearch"', '-p', prompt]
-      // args: ['--dangerously-skip-permissions', '--strict-mcp-config', '--bare', '--output-format', 'json','-p', prompt]
-      
     }
   }
 
-  execute({ prompt, interactive, schema, signal } = {}) {
+  execute({ prompt, schema, signal } = {}) {
     const finalPrompt = schema ? appendSchema(prompt, schema) : prompt
-    const { command, args } = this.buildCommand(finalPrompt, { interactive })
+    const { command, args } = this.buildCommand(finalPrompt)
     const start = Date.now()
 
     return new Promise((resolve, reject) => {
       const proc = spawn(command, args, {
-        stdio: interactive ? 'inherit' : ['pipe', 'pipe', 'pipe']
+        stdio: ['pipe', 'pipe', 'pipe']
       })
 
       if (signal) {
@@ -39,18 +33,16 @@ export class ClaudeCodeProvider {
       let output = ''
       const logs = []
 
-      if (!interactive) {
-        proc.stdout.on('data', (chunk) => {
-          const lines = chunk.toString()
-          output += lines
-          logs.push(lines)
-          this.eventBus?.emit('agent:log', { line: lines })
-        })
+      proc.stdout.on('data', (chunk) => {
+        const lines = chunk.toString()
+        output += lines
+        logs.push(lines)
+        this.eventBus?.emit('agent:log', { line: lines })
+      })
 
-        proc.stderr.on('data', (chunk) => {
-          logs.push('[stderr] ' + chunk.toString())
-        })
-      }
+      proc.stderr.on('data', (chunk) => {
+        logs.push('[stderr] ' + chunk.toString())
+      })
 
       proc.on('close', (exitCode) => {
         const duration = Date.now() - start

@@ -27,10 +27,9 @@ export async function createServer({ port = 3456, eventBus } = {}) {
     const url = new URL(req.url, `http://localhost:${port}`)
     const path = url.pathname
 
-    // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*')
 
-    // SSE endpoint
+    // SSE endpoint — browser clients connect here
     if (path === '/events') {
       res.writeHead(200, {
         'Content-Type': 'text/event-stream',
@@ -43,7 +42,25 @@ export async function createServer({ port = 3456, eventBus } = {}) {
       return
     }
 
-    // API - list workflows
+    // API — receive events from workflow runs (POST from run command)
+    if (path === '/api/event' && req.method === 'POST') {
+      let body = ''
+      req.on('data', chunk => { body += chunk })
+      req.on('end', () => {
+        try {
+          const { event, data } = JSON.parse(body)
+          broadcast(event, data)
+          res.writeHead(200, MIME['.json'])
+          res.end(JSON.stringify({ ok: true }))
+        } catch {
+          res.writeHead(400, MIME['.json'])
+          res.end(JSON.stringify({ error: 'invalid event' }))
+        }
+      })
+      return
+    }
+
+    // API — list workflows
     if (path === '/api/workflows') {
       res.writeHead(200, MIME['.json'])
       res.end(JSON.stringify({ workflows: [] }))

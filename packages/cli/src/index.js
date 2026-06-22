@@ -19,6 +19,7 @@ async function main() {
         if (args[i] === '--provider') opts.provider = args[++i]
         else if (args[i] === '--timeout') opts.timeout = args[++i]
         else if (args[i] === '--max-parallel') opts.maxParallel = args[++i]
+        else if (args[i] === '--dashboard-port') opts.dashboardPort = args[++i]
       }
       const { runWorkflow } = await import('./commands/run.js')
       await runWorkflow(name, opts)

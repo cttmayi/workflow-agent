@@ -1,3 +1,5 @@
+import { createInterface } from 'node:readline'
+
 export function createRuntimeAPI({ eventBus, scheduler }) {
   function phase(title) {
     eventBus.emit('phase:change', { title })
@@ -52,5 +54,34 @@ export function createRuntimeAPI({ eventBus, scheduler }) {
     })
   }
 
-  return { phase, log, parallel, pipeline }
+  const rl = createInterface({ input: process.stdin, output: process.stdout })
+  const inputBuffer = []
+  let inputResolve = null
+
+  rl.on('line', line => {
+    if (inputResolve) {
+      inputResolve(line)
+      inputResolve = null
+    } else {
+      inputBuffer.push(line)
+    }
+  })
+
+  function input(prompt) {
+    rl.setPrompt('❯ ' + (prompt || ''))
+    rl.prompt()
+    return new Promise(resolve => {
+      if (inputBuffer.length > 0) {
+        resolve(inputBuffer.shift())
+      } else {
+        inputResolve = resolve
+      }
+    })
+  }
+
+  function cleanup() {
+    rl.close()
+  }
+
+  return { phase, log, parallel, pipeline, input, cleanup }
 }
