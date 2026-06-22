@@ -38,7 +38,23 @@ npm install -g cttmayi/workflow-agent
 workflow-agent list
 ```
 
-## 编写工作流
+## 创建工作流
+
+支持两种方式：使用 `generate` 自动生成（推荐），或手动编写。
+
+### 方式一：使用 generate 自动生成（推荐）
+
+```bash
+workflow-agent run generate
+```
+
+按照提示依次输入工作流名称和需求描述，AI 会引导完成以下流程：
+
+> **收集需求 → 理解确认(agent 审查循环) → 生成设计方案 → 审查设计(自动审查循环) → 用户确认方案 → 生成代码 → 审查代码(自动审查循环)**
+
+生成的 workflow 脚本会自动保存到 `.workflow-agent/workflow/` 目录。
+
+### 方式二：手动编写
 
 工作流是一个普通的 `.js` 文件，包含 `meta` 导出并使用提供的运行时 API 的顶层异步代码。
 
@@ -55,6 +71,16 @@ const result = await agent('执行任务', { provider: 'claude-code' })
 
 return { result }
 ```
+
+### 工作流存放位置
+
+工作流按名称解析（优先级顺序）：
+
+1. **项目** — `.workflow-agent/workflow/<name>.js`
+2. **全局** — `~/.workflow-agent/workflow/<name>.js`
+3. **内置** — `packages/cli/workflows/<name>.js`
+
+使用 `workflow-agent run <名称>` 即可执行，系统会按以上顺序查找。
 
 ### meta
 
@@ -150,13 +176,6 @@ const user = await agent('从文本中提取用户信息', {
 - 所有代理调用、阶段变更和错误均记录在日志文件中
 - 每条日志格式：`[HH:MM:SS][LEVEL] message`
 
-### 工作流发现
-
-按名称解析工作流（优先级顺序）：
-
-1. **项目** — `.workflow-agent/workflow/<name>.js`
-2. **全局** — `~/.workflow-agent/workflow/<name>.js`
-3. **内置** — `packages/cli/workflows/<name>.js`
 
 ## 配置
 
