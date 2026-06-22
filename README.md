@@ -100,9 +100,20 @@ const processed = await pipeline(
 )
 ```
 
+**`input(prompt)`** — Wait for user input.
+
+- Sets the prompt text and waits for the user to type a line
+- Returns the user's input as a string
+- Prompt is prefixed with `❯ ` to distinguish from other output
+
+```javascript
+const name = await input('请输入名称: ')
+// Shows: ❯ 请输入名称:
+```
+
 **`phase(title)`** — Emit a phase change event (shown in CLI output and dashboard).
 
-**`log(message)`** — Emit a log message.
+**`log(message)`** — Emit a log message (written to log file, not stdout).
 
 ### Schema Validation
 
@@ -123,6 +134,14 @@ const user = await agent('Extract user info from the text', {
 ```
 
 If the agent wraps JSON in markdown code fences, the provider strips them automatically.
+
+### Log System
+
+Workflow execution logs are written to `.workflow-agent/log/` with timestamped filenames (e.g. `2026-06-23T02-20-00.log`).
+
+- stdout is reserved for interactive prompts (`input()`)
+- All agent calls, phase changes, and errors are recorded in the log file
+- Each log entry format: `[HH:MM:SS][LEVEL] message`
 
 ### Workflow Discovery
 
@@ -157,7 +176,8 @@ Options:
   --provider <name>    Agent provider (default: claude-code)
   --timeout <ms>       Per-agent timeout (default: 300000)
   --max-parallel <n>   Max parallel agents (default: 4)
-```
+
+Run logs are written to `.workflow-agent/log/`. The `generate` workflow also produces generated workflow scripts in `.workflow-agent/workflow/`.
 
 ## Dashboard
 
@@ -173,7 +193,7 @@ A real-time web dashboard with SSE-based event streaming showing workflow progre
 
 | Name | Description |
 |------|-------------|
-| `generate` | Interactive workflow generator — describes your workflow to an AI agent |
+| `generate` | 交互式 workflow 生成器 — 7 阶段流程：收集需求 → 理解确认(agent 审查循环) → 生成设计方案 → 审查设计(自动审查循环) → 用户确认方案 → 生成代码 → 审查代码(自动审查循环) |
 | `test` | Self-test — verifies all runtime APIs (agent, parallel, pipeline, phase, log, schema) |
 
 ## Project Structure
@@ -185,7 +205,9 @@ workflow-agent/
 │   ├── agent/         Provider adapters (Claude Code, Codex)
 │   ├── cli/           CLI entry point, workflow finder, built-in workflows
 │   └── dashboard/     Web dashboard (HTTP + SSE)
-└── .workflow-agent/   Project-level workflows and config (user-created)
+├── .workflow-agent/
+│   ├── workflow/       User-created workflow scripts
+│   └── log/            Execution logs (auto-generated)
 ```
 
 ## Development
