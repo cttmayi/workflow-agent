@@ -31,6 +31,13 @@ workflow-agent list
 workflow-agent run test
 ```
 
+**从 GitHub 直接安装（无需 clone）：**
+
+```bash
+npm install -g cttmayi/workflow-agent
+workflow-agent list
+```
+
 ## 编写工作流
 
 工作流是一个普通的 `.js` 文件，包含 `meta` 导出并使用提供的运行时 API 的顶层异步代码。
