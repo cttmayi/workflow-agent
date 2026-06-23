@@ -20,7 +20,8 @@ export class CodexProvider {
 
     return new Promise((resolve, reject) => {
       const proc = spawn(command, args, {
-        stdio: ['pipe', 'pipe', 'pipe']
+        stdio: ['pipe', 'pipe', 'pipe'],
+        shell: process.platform === 'win32'
       })
 
       if (signal) {
