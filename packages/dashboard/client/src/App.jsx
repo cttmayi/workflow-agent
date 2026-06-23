@@ -34,18 +34,17 @@ function EventCard({ event }) {
     case 'agent-start':
       return <div style={styles.agStart}>
         <span style={styles.time}>{time}</span> → [{event.label || event.provider}] starting...
-        {event.prompt && <div style={{ color: '#888', fontSize: '0.75rem', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{event.prompt.slice(0, 120)}...</div>}
+        {event.prompt && <pre style={{ fontSize: '0.75rem', margin: '0.25rem 0 0', overflow: 'auto', maxHeight: 100, background: '#f9f9f9', padding: 4, borderRadius: 4 }}>{event.prompt}</pre>}
       </div>
 
     case 'agent-end':
       return <div style={styles.agEnd}>
         <span style={styles.time}>{time}</span> ← [{event.provider}] done ({event.duration}ms)
+        {event.output && <pre style={{ fontSize: '0.75rem', margin: '0.25rem 0 0', overflow: 'auto', maxHeight: 100, background: '#f9f9f9', padding: 4, borderRadius: 4 }}>{event.output}</pre>}
       </div>
 
     case 'log':
-      return <div style={styles.log}>
-        <span style={styles.muted}>{time}</span> {event.line}
-      </div>
+      return null
   }
 }
 
