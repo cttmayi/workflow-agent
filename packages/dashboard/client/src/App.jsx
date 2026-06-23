@@ -44,7 +44,9 @@ function EventCard({ event }) {
       </div>
 
     case 'log':
-      return null
+      return <div style={styles.log}>
+        <span style={styles.muted}>{time}</span> {event.line}
+      </div>
   }
 }
 
