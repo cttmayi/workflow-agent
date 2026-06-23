@@ -245,6 +245,14 @@ workflow-agent dashboard 8080
 
 基于 SSE 事件流的实时 Web 仪表盘，展示工作流进度、代理调用和结果。
 
+如需修改前端界面，在 `packages/dashboard/client/` 目录执行：
+
+```bash
+./setup.sh
+```
+
+然后重启 dashboard 即可生效。
+
 ## 内置工作流
 
 | 名称 | 说明 |

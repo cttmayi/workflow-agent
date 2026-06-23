@@ -93,7 +93,7 @@ export async function createServer({ port = 3456, eventBus } = {}) {
 <html><head><title>Workflow Agent Dashboard</title></head>
 <body>
   <h1>Workflow Agent Dashboard</h1>
-  <p>Dev mode — build the React client with <code>npm run build</code> in packages/dashboard/client</p>
+  <p>Dashboard client not built — run <code>bash packages/dashboard/client/setup.sh</code> to build it</p>
   <div id="root"></div>
   <script>
     const evtSource = new EventSource('/events')
