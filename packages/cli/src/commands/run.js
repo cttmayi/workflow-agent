@@ -1,10 +1,15 @@
-import { mkdirSync, createWriteStream } from 'node:fs'
+import { mkdirSync, createWriteStream, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { createEngine, createEventBus } from '../../../core/src/index.js'
 import { createProvider } from '../../../agent/src/index.js'
 import { createWorkflowFinder } from '../workflow-finder.js'
 
 export async function runWorkflow(name, options) {
+  const projectConfig = join(process.cwd(), '.workflow-agent', 'config.json')
+  if (!existsSync(projectConfig)) {
+    console.log('  ◆ 请先执行 workflow-agent init 初始化项目配置\n')
+  }
+
   const finder = createWorkflowFinder()
   const found = finder.find(name)
 
@@ -83,7 +88,8 @@ export async function runWorkflow(name, options) {
 
   async function agentFn(prompt, opts = {}) {
     const providerName = opts.provider || options.provider || 'claude-code'
-    const provider = createProvider(providerName, { eventBus: bus })
+    const providerConfig = engine.config.providers?.[providerName] || {}
+    const provider = createProvider(providerName, { eventBus: bus, ...providerConfig })
 
     const timeoutMs = parseInt(options.timeout, 10) || 300000
     const timeoutSignal = AbortSignal.timeout(timeoutMs)

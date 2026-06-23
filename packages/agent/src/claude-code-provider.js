@@ -1,15 +1,16 @@
 import { spawn } from 'node:child_process'
 
 export class ClaudeCodeProvider {
-  constructor({ commandPath = 'claude', eventBus } = {}) {
-    this.commandPath = commandPath
+  constructor({ commandPath, args: fixedArgs, eventBus } = {}) {
+    this.commandPath = commandPath || 'claude'
+    this.fixedArgs = fixedArgs || ['--dangerously-skip-permissions', '--bare', '--setting-sources', 'user', '-p']
     this.eventBus = eventBus
   }
 
   buildCommand(prompt) {
     return {
       command: this.commandPath,
-      args: ['--dangerously-skip-permissions', '--bare', '--setting-sources', 'user', '-p', prompt]
+      args: [...this.fixedArgs, prompt]
     }
   }
 

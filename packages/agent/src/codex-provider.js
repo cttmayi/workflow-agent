@@ -1,15 +1,16 @@
 import { spawn } from 'node:child_process'
 
 export class CodexProvider {
-  constructor({ commandPath = 'codex', eventBus } = {}) {
-    this.commandPath = commandPath
+  constructor({ commandPath, args: fixedArgs, eventBus } = {}) {
+    this.commandPath = commandPath || 'codex'
+    this.fixedArgs = fixedArgs || ['exec', '--full-auto']
     this.eventBus = eventBus
   }
 
   buildCommand(prompt) {
     return {
       command: this.commandPath,
-      args: ['exec', prompt, '--full-auto']
+      args: [...this.fixedArgs, prompt]
     }
   }
 

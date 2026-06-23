@@ -39,3 +39,25 @@ timeout: 300000
 # also increase resource usage (CPU, memory, API quota).
 # --------------------------------------------------------------------------
 maxParallel: 4
+
+# --------------------------------------------------------------------------
+# providers
+# ---------
+# Per-provider configuration. Each key is a provider name. The "args" array
+# specifies fixed command-line arguments passed to the provider CLI on every
+# invocation (the prompt is appended automatically at runtime).
+# --------------------------------------------------------------------------
+providers:
+  claude-code:
+    commandPath: "claude"
+    args:
+      - "--dangerously-skip-permissions"
+      - "--bare"
+      - "--setting-sources"
+      - "user"
+      - "-p"
+  codex:
+    commandPath: "codex"
+    args:
+      - "exec"
+      - "--full-auto"

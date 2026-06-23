@@ -5,7 +5,17 @@ import { homedir } from 'node:os'
 const DEFAULTS = {
   defaultProvider: 'claude-code',
   timeout: 300000,
-  maxParallel: 4
+  maxParallel: 4,
+  providers: {
+    'claude-code': {
+      commandPath: 'claude',
+      args: ['--dangerously-skip-permissions', '--bare', '--setting-sources', 'user', '-p']
+    },
+    codex: {
+      commandPath: 'codex',
+      args: ['exec', '--full-auto']
+    }
+  }
 }
 
 function readConfig(path) {
