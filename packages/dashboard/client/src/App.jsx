@@ -40,7 +40,6 @@ function EventCard({ event }) {
     case 'agent-end':
       return <div style={styles.agEnd}>
         <span style={styles.time}>{time}</span> ← [{event.provider}] done ({event.duration}ms)
-        {event.output && <div style={{ color: '#888', fontSize: '0.75rem', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{event.output.slice(0, 200)}{event.output.length > 200 ? '...' : ''}</div>}
       </div>
 
     case 'log':
