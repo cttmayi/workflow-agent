@@ -8,10 +8,10 @@ export class ClaudeCodeProvider {
   }
 
   buildCommand(prompt) {
-    return {
-      command: this.commandPath,
-      args: [...this.fixedArgs, prompt]
-    }
+    const args = this.fixedArgs.map(a =>
+      a.replace(/\{prompt\}/g, prompt).replace(/\{cwd\}/g, process.cwd())
+    )
+    return { command: this.commandPath, args }
   }
 
   execute({ prompt, schema, signal } = {}) {

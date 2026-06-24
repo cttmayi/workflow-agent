@@ -216,7 +216,10 @@ providers:
       - "--full-auto"
 ```
 
-可自定义 `commandPath`（例如指定完整路径）或修改 `args`（例如去掉 `--dangerously-skip-permissions`）。
+可自定义 `commandPath`（例如指定完整路径）或修改 `args`。Args 支持变量替换：
+
+- `{prompt}` — 运行时传入的提示文本（**必填**）
+- `{cwd}` — 当前工作目录
 
 - **全局：** `~/.workflow-agent/config.yaml`
 - **项目：** `<cwd>/.workflow-agent/config.yaml`

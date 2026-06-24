@@ -10,11 +10,11 @@ const DEFAULTS = {
   providers: {
     'claude-code': {
       commandPath: 'claude',
-      args: ['--dangerously-skip-permissions', '--bare', '--setting-sources', 'user', '-p']
+      args: ['--dangerously-skip-permissions', '--bare', '--setting-sources', 'user', '-p', '{prompt}']
     },
     codex: {
       commandPath: 'codex',
-      args: ['exec', '--full-auto']
+      args: ['exec', '{prompt}', '--full-auto']
     }
   }
 }
