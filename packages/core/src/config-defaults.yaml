@@ -5,8 +5,8 @@
 # and adjust the values as needed.
 #
 # Configuration priority (highest wins):
-#   Project (.workflow-agent/config.json) >
-#   Global (~/.workflow-agent/config.json) >
+#   Project (.workflow-agent/config.yaml) >
+#   Global (~/.workflow-agent/config.yaml) >
 #   Defaults (this file)
 
 # --------------------------------------------------------------------------
