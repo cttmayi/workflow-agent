@@ -26,14 +26,14 @@ describe('config-loader', () => {
   })
 
   it('loads global config and merges with defaults', () => {
-    writeFileSync(join(globalDir, 'config.json'), JSON.stringify({ timeout: 60000 }))
+    writeFileSync(join(globalDir, 'config.yaml'), 'timeout: 60000\n')
     const config = loadConfig(join(tmpDir, 'project'), { globalHome: tmpDir })
     assert.equal(config.defaultProvider, 'claude-code')
     assert.equal(config.timeout, 60000)
   })
 
   it('project config overrides global config', () => {
-    writeFileSync(join(projectDir, 'config.json'), JSON.stringify({ maxParallel: 8 }))
+    writeFileSync(join(projectDir, 'config.yaml'), 'maxParallel: 8\n')
     const config = loadConfig(join(tmpDir, 'project'), { globalHome: tmpDir })
     assert.equal(config.timeout, 60000)
     assert.equal(config.maxParallel, 8)

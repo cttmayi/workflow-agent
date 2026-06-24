@@ -5,7 +5,7 @@ import { createProvider } from '../../../agent/src/index.js'
 import { createWorkflowFinder } from '../workflow-finder.js'
 
 export async function runWorkflow(name, options) {
-  const projectConfig = join(process.cwd(), '.workflow-agent', 'config.json')
+  const projectConfig = join(process.cwd(), '.workflow-agent', 'config.yaml')
   if (!existsSync(projectConfig)) {
     console.error('  ✗ 未找到项目配置，请先执行 workflow-agent init')
     process.exit(1)

@@ -1,7 +1,7 @@
 # ============================================
 # Workflow Agent — Default Configuration
 # ============================================
-# Copy this file to .workflow-agent/config.json
+# Copy this file to .workflow-agent/config.yaml
 # and adjust the values as needed.
 #
 # Configuration priority (highest wins):

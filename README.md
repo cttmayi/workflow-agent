@@ -197,27 +197,29 @@ const user = await agent('从文本中提取用户信息', {
 | `maxParallel` | `4` | 最大并发代理执行数 |
 | `providers` | `{ claude-code: {...}, codex: {...} }` | 各提供商的命令路径和固定参数 |
 
-**provider 配置示例（`.workflow-agent/config.json`）：**
+**provider 配置示例（`.workflow-agent/config.yaml`）：**
 
-```json
-{
-  "providers": {
-    "claude-code": {
-      "commandPath": "claude",
-      "args": ["--dangerously-skip-permissions", "--bare", "--setting-sources", "user", "-p"]
-    },
-    "codex": {
-      "commandPath": "codex",
-      "args": ["exec", "--full-auto"]
-    }
-  }
-}
+```yaml
+providers:
+  claude-code:
+    commandPath: "claude"
+    args:
+      - "--dangerously-skip-permissions"
+      - "--bare"
+      - "--setting-sources"
+      - "user"
+      - "-p"
+  codex:
+    commandPath: "codex"
+    args:
+      - "exec"
+      - "--full-auto"
 ```
 
 可自定义 `commandPath`（例如指定完整路径）或修改 `args`（例如去掉 `--dangerously-skip-permissions`）。
 
-- **全局：** `~/.workflow-agent/config.json`
-- **项目：** `<cwd>/.workflow-agent/config.json`
+- **全局：** `~/.workflow-agent/config.yaml`
+- **项目：** `<cwd>/.workflow-agent/config.yaml`
 
 ## CLI
 

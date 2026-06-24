@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { homedir } from 'node:os'
+import yaml from 'js-yaml'
 
 const DEFAULTS = {
   defaultProvider: 'claude-code',
@@ -21,15 +22,15 @@ const DEFAULTS = {
 function readConfig(path) {
   try {
     const raw = readFileSync(path, 'utf-8')
-    return JSON.parse(raw)
+    return yaml.load(raw) || {}
   } catch {
     return {}
   }
 }
 
 export function loadConfig(cwd, { globalHome = homedir() } = {}) {
-  const globalPath = join(globalHome, '.workflow-agent', 'config.json')
-  const projectPath = join(cwd, '.workflow-agent', 'config.json')
+  const globalPath = join(globalHome, '.workflow-agent', 'config.yaml')
+  const projectPath = join(cwd, '.workflow-agent', 'config.yaml')
 
   return {
     ...DEFAULTS,
