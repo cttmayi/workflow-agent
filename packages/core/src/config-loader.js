@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { homedir } from 'node:os'
-import yaml from 'js-yaml'
+import { load as parseYaml } from 'js-yaml'
 
 const DEFAULTS = {
   defaultProvider: 'claude-code',
@@ -22,7 +22,7 @@ const DEFAULTS = {
 function readConfig(path) {
   try {
     const raw = readFileSync(path, 'utf-8')
-    return yaml.load(raw) || {}
+    return parseYaml(raw) || {}
   } catch {
     return {}
   }
