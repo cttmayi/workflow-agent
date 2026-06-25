@@ -200,6 +200,7 @@ ${plan}
   - 禁止文件系统操作，需通过 agent() 委托执行
   - 默认原则：除非用户明确指定路径，否则默认处理当前目录下的文件
   - 纯 JavaScript，无外部依赖
+  - 文件顶部必须有中文注释描述此 workflow 的用途和流程
   - export const meta = { name, description, providers }
   - meta.description 使用中文
   - 文件名：${name}.js
