@@ -139,11 +139,13 @@ ${plan}
   - 使用 async function main() {} 包含主流程
   - 每个 agent() 调用必须用有意义的函数名封装，不要直接调用 agent()
   - 文件末尾用 return await main() 返回结果
-  - 需要用户确认时，用 agent 生成提问（不要硬编码 input 提示文字）
-    参考：async function askUser(content, purpose) {
-      const q = await agent(\`根据内容和场景生成一句中文提问：\${content} 场景：\${purpose}\`)
-      return '\n' + content + '\n\n' + q + '\n'
-    }
+  - 需要用户确认时，先用 console.log 展示内容，再用 agent 生成提问
+    参考：
+      async function askUser(content, purpose) {
+        const q = await agent(\`根据内容和场景生成一句中文提问：\${content} 场景：\${purpose}\`)
+        return q
+      }
+      // 使用：console.log(content); const q = await askUser(content); const reply = await input(q)
 
 常用模式示例（参考以下写法）：
 
@@ -179,11 +181,12 @@ ${plan}
        schema: { type: 'object', properties: { name: { type: 'string' } } }
      })
 
-  5) Agent 生成确认提问：
+  5) Agent 生成确认提问（先 console.log 展示内容，再用 input 提问）：
      async function askConfirm(content, purpose) {
        const q = await agent('根据内容生成确认提问。内容：' + content + ' 场景：' + purpose)
-       return '\n' + content + '\n\n' + q + '\n'
+       return q
      }
+     // console.log(content); const q = await askConfirm(content, '确认方案'); const reply = await input(q)
 
 关键 - 限制：
   - 所有面向用户的文本必须使用中文（phase 标题、log 信息、input 提示）
@@ -248,7 +251,11 @@ ${content}
 - 只输出问题本身，不要输出内容
 - 自然口语化的提问
 - 让用户知道可以直接同意或提出修改意见`)
-  return '\n' + content + '\n\n' + question + '\n'
+  return question
+}
+
+async function showContent(content) {
+  console.log('\n' + content + '\n')
 }
 
 async function judgeApproval(content, userInput, context) {
@@ -272,12 +279,14 @@ async function main() {
 
   phase('理解需求')
   let requirement = await generateStructuredReq(workflowName, description)
+  await showContent(requirement)
   let question = await askUser(requirement, '向用户确认需求理解是否准确')
   let reply = await input(question)
   let result = await judgeApproval(requirement, reply, '确认以下需求理解')
 
   while (!result.isApproved) {
     requirement = await reviseRequirement(requirement, result.feedback, description)
+    await showContent(requirement)
     question = await askUser(requirement, '根据修改后的需求再次向用户确认')
     reply = await input(question)
     result = await judgeApproval(requirement, reply, '确认以下需求理解')
@@ -298,12 +307,14 @@ async function main() {
   }
 
   phase('用户确认')
+  await showContent(plan)
   question = await askUser(plan, '向用户确认是否批准设计方案')
   reply = await input(question)
   result = await judgeApproval(plan, reply, '批准以下设计方案')
 
   while (!result.isApproved) {
     plan = await reviseDesignByUser(plan, result.feedback)
+    await showContent(plan)
     question = await askUser(plan, '向用户确认修改后的方案是否批准')
     reply = await input(question)
     result = await judgeApproval(plan, reply, '批准以下设计方案')
