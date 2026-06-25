@@ -139,6 +139,10 @@ ${plan}
   - 使用 async function main() {} 包含主流程
   - 每个 agent() 调用必须用有意义的函数名封装，不要直接调用 agent()
   - 文件末尾用 return await main() 返回结果
+  - input() 只接受用户的自然语言输入，绝不能让用户输入 JSON 或代码
+  - 如需结构化数据，用 agent() + schema 解析用户的自然语言描述
+    错误示范：await input('请输入 JSON 格式的配置')
+    正确示范：先 input('请描述需求'), 再用 agent(prompt, { schema: {...} }) 提取结构化数据
   - 需要用户确认时，先用 console.log 展示内容，再用 agent 生成提问
     参考：
       async function askUser(content, purpose) {
