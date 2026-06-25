@@ -68,7 +68,7 @@ export function createRuntimeAPI({ eventBus, scheduler }) {
   })
 
   function input(prompt) {
-    rl.setPrompt('❯ ' + (prompt || ''))
+    rl.setPrompt('>>> ' + (prompt || ''))
     rl.prompt()
     return new Promise(resolve => {
       if (inputBuffer.length > 0) {
