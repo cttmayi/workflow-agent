@@ -1,4 +1,8 @@
 import { spawn } from 'node:child_process'
+import { readFileSync, existsSync, unlinkSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { randomBytes } from 'node:crypto'
 import { validateSchema } from './schema-validator.js'
 
 export class ClaudeCodeProvider {
@@ -8,28 +12,40 @@ export class ClaudeCodeProvider {
     this.eventBus = eventBus
   }
 
-  buildCommand(prompt) {
+  buildCommand(prompt, outputPath) {
     const args = this.fixedArgs.map(a =>
-      a.replace(/\{prompt\}/g, prompt).replace(/\{cwd\}/g, process.cwd())
+      a.replace(/\{prompt\}/g, prompt)
+       .replace(/\{cwd\}/g, process.cwd())
+       .replace(/\{output\}/g, outputPath || '')
     )
     return { command: this.commandPath, args }
   }
 
   async execute({ prompt, schema, signal } = {}) {
     const start = Date.now()
-    const finalPrompt = schema ? appendSchema(prompt, schema) : prompt
-    const result = await this._spawn(finalPrompt, signal, start)
+    const outputPath = schema
+      ? join(tmpdir(), 'wa-' + process.pid + '-' + Date.now() + '-' + randomBytes(4).toString('hex') + '.json')
+      : null
 
-    if (schema) {
-      result.data = parseJSON(result.output)
-      validateSchema(result.data, schema)
+    try {
+      const finalPrompt = schema ? appendSchema(prompt, schema, outputPath) : prompt
+      const result = await this._spawn(finalPrompt, signal, start, outputPath)
+
+      if (schema) {
+        result.data = readOutput(result.output, outputPath)
+        validateSchema(result.data, schema)
+      }
+
+      return result
+    } finally {
+      if (outputPath && existsSync(outputPath)) {
+        try { unlinkSync(outputPath) } catch {}
+      }
     }
-
-    return result
   }
 
-  _spawn(prompt, signal, start) {
-    const { command, args } = this.buildCommand(prompt)
+  _spawn(prompt, signal, start, outputPath) {
+    const { command, args } = this.buildCommand(prompt, outputPath)
 
     return new Promise((resolve, reject) => {
       const proc = spawn(command, args, {
@@ -74,6 +90,16 @@ export class ClaudeCodeProvider {
   }
 }
 
+function readOutput(stdout, filePath) {
+  if (filePath && existsSync(filePath)) {
+    try {
+      const content = readFileSync(filePath, 'utf-8')
+      return JSON.parse(content)
+    } catch {}
+  }
+  return parseJSON(stdout)
+}
+
 function parseJSON(raw) {
   try {
     return JSON.parse(raw)
@@ -113,13 +139,14 @@ function extractJSON(raw) {
   return null
 }
 
-function appendSchema(prompt, schema) {
+function appendSchema(prompt, schema, outputPath) {
   return `${prompt}
 
 Required JSON schema:
 ${JSON.stringify(schema, null, 2)}
 
-IMPORTANT: Before outputting the final JSON, use the bash tool to validate it with node -e.
-If validation fails, fix the JSON and re-validate until it passes.
-Output ONLY the final valid JSON, nothing else.`
+Write the JSON to ${outputPath} using the bash tool (cat + heredoc).
+Then validate with: node -e "JSON.parse(require('fs').readFileSync('${outputPath}','utf8'))"
+If validation fails, fix the file and re-validate.
+Once valid, output nothing except "DONE".`
 }
