@@ -146,11 +146,11 @@ const processed = await pipeline(
 
 - 设置提示文本并等待用户输入一行
 - 返回用户输入的字符串
-- 提示文本前缀为 `>>> `，以区别于其他输出
+- 提示文本前缀为 `❯ `，以区别于其他输出
 
 ```javascript
 const name = await input('请输入名称: ')
-// 显示: >>> 请输入名称:
+// 显示: ❯ 请输入名称:
 ```
 
 **`phase(title)`** — 发出阶段变更事件（显示在 CLI 输出和仪表盘中）。
@@ -234,7 +234,7 @@ workflow-agent init                        初始化 .workflow-agent 目录
 
 选项：
   --provider <name>    代理提供商（默认：claude-code）
-  --timeout <ms>       每个代理的超时时间（默认：300000）
+  --timeout <ms>       每个代理的超时时间（0 = 无超时，默认：300000）
   --max-parallel <n>   最大并发代理数（默认：4）
 
 运行日志写入 `.workflow-agent/log/`。`generate` 工作流还会在 `.workflow-agent/workflow/` 中生成工作流脚本。

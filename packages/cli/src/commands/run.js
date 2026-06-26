@@ -92,11 +92,10 @@ export async function runWorkflow(name, options) {
     const providerConfig = engine.config.providers?.[providerName] || {}
     const provider = createProvider(providerName, { eventBus: bus, ...providerConfig })
 
-    const timeoutMs = parseInt(options.timeout, 10) || 300000
-    const timeoutSignal = AbortSignal.timeout(timeoutMs)
-    const combinedSignal = opts.signal
-      ? AbortSignal.any([opts.signal, timeoutSignal])
-      : timeoutSignal
+    const timeoutMs = parseInt(options.timeout, 10)
+    const timeoutSignal = timeoutMs > 0 ? AbortSignal.timeout(timeoutMs) : null
+    const combined = [opts.signal, timeoutSignal].filter(Boolean)
+    const combinedSignal = combined.length > 1 ? AbortSignal.any(combined) : combined[0] || null
 
     bus.emit('agent:start', { provider: providerName, prompt, label: opts.label })
 
@@ -129,14 +128,20 @@ export async function runWorkflow(name, options) {
     logStream.end()
     console.log('  ✓ Done.')
     if (result) {
-      console.log('\nResult:', JSON.stringify(result, null, 2))
+      if (typeof result === 'object' && result.report) {
+        console.log('\n' + result.report)
+      } else {
+        for (const [key, value] of Object.entries(result)) {
+          console.log(`  ${key}: ${typeof value === 'object' ? JSON.stringify(value, null, 2) : value}`)
+        }
+      }
     }
     return result
   } catch (err) {
-    writeLog('SYSTEM', `failed: ${err.message}`)
+    const msg = err?.message || String(err)
+    writeLog('SYSTEM', `failed: ${msg}`)
     logStream.end()
-    console.log('\n  ✗ Failed.')
-    console.error(err.message)
+    console.log(`\n  ✗ ${msg}`)
     process.exit(1)
   }
 }

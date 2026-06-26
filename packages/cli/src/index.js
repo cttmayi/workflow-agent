@@ -49,7 +49,7 @@ Usage:
 
 Options:
   --provider <name>    Default agent provider (default: claude-code)
-  --timeout <ms>       Agent timeout in milliseconds (default: 300000)
+  --timeout <ms>       Agent timeout in ms (0 = no timeout, default: 300000)
   --max-parallel <n>   Max parallel agents (default: 4)`)
       break
     default:

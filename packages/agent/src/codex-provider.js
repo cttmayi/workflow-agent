@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process'
+import { validateSchema } from './schema-validator.js'
 
 export class CodexProvider {
   constructor({ commandPath, args: fixedArgs, eventBus } = {}) {
@@ -14,10 +15,21 @@ export class CodexProvider {
     return { command: this.commandPath, args }
   }
 
-  execute({ prompt, schema, signal } = {}) {
-    const finalPrompt = schema ? appendSchema(prompt, schema) : prompt
-    const { command, args } = this.buildCommand(finalPrompt)
+  async execute({ prompt, schema, signal } = {}) {
     const start = Date.now()
+    const finalPrompt = schema ? appendSchema(prompt, schema) : prompt
+    const result = await this._spawn(finalPrompt, signal, start)
+
+    if (schema) {
+      result.data = parseJSON(result.output)
+      validateSchema(result.data, schema)
+    }
+
+    return result
+  }
+
+  _spawn(prompt, signal, start) {
+    const { command, args } = this.buildCommand(prompt)
 
     return new Promise((resolve, reject) => {
       const proc = spawn(command, args, {
@@ -28,7 +40,7 @@ export class CodexProvider {
       if (signal) {
         signal.addEventListener('abort', () => {
           proc.kill()
-          reject(new Error('aborted'))
+          reject(signal.reason || new Error('aborted'))
         }, { once: true })
       }
 
@@ -49,17 +61,7 @@ export class CodexProvider {
       proc.on('close', (exitCode) => {
         const duration = Date.now() - start
         if (exitCode === 0 || exitCode === null) {
-          const result = { output, exitCode: exitCode || 0, duration, logs }
-
-          if (schema) {
-            try {
-              result.data = parseJSON(output)
-            } catch {
-              return reject(new Error(`schema validation failed: output is not valid JSON`))
-            }
-          }
-
-          resolve(result)
+          resolve({ output, exitCode: exitCode || 0, duration, logs })
         } else {
           reject(new Error(`codex exited with code ${exitCode}`))
         }
@@ -75,21 +77,49 @@ export class CodexProvider {
 function parseJSON(raw) {
   try {
     return JSON.parse(raw)
-  } catch {
-    // Strip markdown code fences and surrounding text, then extract first JSON object
-    const cleaned = raw.replace(/```(?:json)?\s*\n?/gi, '').trim()
-    const start = cleaned.indexOf('{')
-    const end = cleaned.lastIndexOf('}')
-    if (start !== -1 && end > start) {
-      return JSON.parse(cleaned.slice(start, end + 1))
-    }
-    throw new Error('no JSON object found in output')
+  } catch (e) {
+    const extracted = extractJSON(raw)
+    if (extracted !== null) return extracted
+
+    throw new Error(
+      `output is not valid JSON (${e.message}). ` +
+      `Total output length: ${raw.length} chars.` +
+      `\n--- BEGIN OUTPUT ---\n${raw}\n--- END OUTPUT ---`
+    )
   }
+}
+
+function extractJSON(raw) {
+  let cleaned = raw.replace(/^[\s\S]*?```(?:json)?\s*\n?/i, '').trim()
+  cleaned = cleaned.replace(/```[\s\S]*$/i, '').trim()
+
+  const start = cleaned.indexOf('{')
+  if (start === -1) return null
+
+  let depth = 0
+  for (let i = start; i < cleaned.length; i++) {
+    if (cleaned[i] === '{') depth++
+    else if (cleaned[i] === '}') {
+      depth--
+      if (depth === 0) {
+        try {
+          return JSON.parse(cleaned.slice(start, i + 1))
+        } catch {
+          return null
+        }
+      }
+    }
+  }
+  return null
 }
 
 function appendSchema(prompt, schema) {
   return `${prompt}
 
-Output ONLY valid JSON matching this schema, nothing else:
-${JSON.stringify(schema, null, 2)}`
+Required JSON schema:
+${JSON.stringify(schema, null, 2)}
+
+IMPORTANT: Before outputting the final JSON, use the bash tool to validate it with node -e.
+If validation fails, fix the JSON and re-validate until it passes.
+Output ONLY the final valid JSON, nothing else.`
 }
